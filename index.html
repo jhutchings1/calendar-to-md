@@ -1,0 +1,258 @@
+<!--
+  Copyright (c) 2011 Google Inc.
+
+  Licensed under the Apache License, Version 2.0 (the "License"); you may not
+  use this file except in compliance with the License. You may obtain a copy of
+  the License at
+
+  http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+  License for the specific language governing permissions and limitations under
+  the License.
+
+  To run this sample, set apiKey to your application's API key and clientId to
+  your application's OAuth 2.0 client ID. They can be generated at:
+    https://console.developers.google.com/apis/credentials?project=_
+  Then, add a JavaScript origin to the client that corresponds to the domain
+  where you will be running the script. Finally, activate the People API at:
+    https://console.developers.google.com/apis/library?project=_
+-->
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Meeting to Markdown</title>
+  <meta charset='utf-8' />
+  <link href="https://unpkg.com/primer/build/build.css" rel="stylesheet">
+</head>
+
+<body>
+  <div class="main-nav d-flex flex-justify-between px-3 pl-md-4 pr-md-4 py-3 box-shadow bg-gray-dark Details js-details-container">
+    <div class="d-flex flex-self-center flex-lg-auto mr-lg-2">
+      <h1 class="h4 text-white"> Calendar to MD</h1>
+    </div>
+
+    <!--Add buttons to initiate auth sequence and sign out-->
+    <button id="authorize-button" style="display: none;">Authorize</button>
+    <button id="signout-button" style="display: none;">Sign Out</button>
+  </div>
+
+  <div class="markdown-body">
+    <div id="content" class="flex-row flex-lg-column main-content mt-4 mt-lg-6 pb-6 mx-auto px-3">
+      <h3>Meeting</h3>
+    </div>
+    <div class="flex-row flex-lg-column main-content mt-4 mt-lg-6 pb-6 mx-auto px-3">
+      <h3>Notes<div class="input-group-button float-right mr-4">
+          <button onclick="copy()" aria-label="Copy to clipboard" class="btn btn-sm" tabindex="0" role="button">
+            <svg class="octicon octicon-clippy" viewBox="0 0 14 16" version="1.1" width="14" height="16" aria-hidden="true">
+              <path fill-rule="evenodd" d="M2 13h4v1H2v-1zm5-6H2v1h5V7zm2 3V8l-3 3 3 3v-2h5v-2H9zM4.5 9H2v1h2.5V9zM2 12h2.5v-1H2v1zm9 1h1v2c-.02.28-.11.52-.3.7-.19.18-.42.28-.7.3H1c-.55 0-1-.45-1-1V4c0-.55.45-1 1-1h3c0-1.11.89-2 2-2 1.11 0 2 .89 2 2h3c.55 0 1 .45 1 1v5h-1V6H1v9h10v-2zM2 5h8c0-.55-.45-1-1-1H8c-.55 0-1-.45-1-1s-.45-1-1-1-1 .45-1 1-.45 1-1 1H3c-.55 0-1 .45-1 1z"></path>
+            </svg>
+          </button>
+        </div>
+      </h3>
+
+      <div class="highlight">
+        <pre id="meetingTemplate"></pre>
+        <textarea style="height: 0px;
+        width: 0px;left:-1000px;top:-1000px;
+        overflow: hidden;
+        position: absolute;"
+          id="meetingTemplate2"></textarea>
+
+      </div>
+
+    </div>
+  </div>
+  <script type="text/javascript">
+    // Enter an API key from the Google API Console:
+    //   https://console.developers.google.com/apis/credentials
+    var apiKey = 'AIzaSyDgBblSkAU1w8PdNF4nCgs_De-u8X8xWEo';
+
+    // Enter the API Discovery Docs that describes the APIs you want to
+    // access. In this example, we are accessing the People API, so we load
+    // Discovery Doc found here: https://developers.google.com/people/api/rest/
+    var discoveryDocs = ["https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest"];
+
+    // Enter a client ID for a web application from the Google API Console:
+    //   https://console.developers.google.com/apis/credentials?project=_
+    // In your API Console project, add a JavaScript origin that corresponds
+    //   to the domain where you will be running the script.
+    var clientId = '787479069087-gihvvod26a72hd5hfjoc6os17er9pr6c.apps.googleusercontent.com';
+
+    // Enter one or more authorization scopes. Refer to the documentation for
+    // the API or https://developers.google.com/people/v1/how-tos/authorizing
+    // for details.
+    var scopes = 'profile https://www.googleapis.com/auth/calendar.events.readonly';
+
+    var authorizeButton = document.getElementById('authorize-button');
+    var signoutButton = document.getElementById('signout-button');
+
+    function handleClientLoad() {
+      // Load the API client and auth2 library
+      gapi.load('client:auth2', initClient);
+    }
+
+    function initClient() {
+      gapi.client.init({
+        apiKey: apiKey,
+        discoveryDocs: discoveryDocs,
+        clientId: clientId,
+        scope: scopes
+      }).then(function () {
+        // Listen for sign-in state changes.
+        gapi.auth2.getAuthInstance().isSignedIn.listen(updateSigninStatus);
+
+        // Handle the initial sign-in state.
+        updateSigninStatus(gapi.auth2.getAuthInstance().isSignedIn.get());
+
+        authorizeButton.onclick = handleAuthClick;
+        signoutButton.onclick = handleSignoutClick;
+      });
+    }
+
+    function updateSigninStatus(isSignedIn) {
+      if (isSignedIn) {
+        authorizeButton.style.display = 'none';
+        signoutButton.style.display = 'block';
+        makeApiCall();
+      } else {
+        authorizeButton.style.display = 'block';
+        signoutButton.style.display = 'none';
+      }
+    }
+
+    function handleAuthClick(event) {
+      gapi.auth2.getAuthInstance().signIn();
+    }
+
+    function handleSignoutClick(event) {
+      gapi.auth2.getAuthInstance().signOut();
+    }
+
+    /**
+     * Append a pre element to the body containing the given message
+     * as its text node. Used to display the results of the API call.
+     *
+     * @param {string} message Text to be placed in pre element.
+     */
+    function appendPre(message) {
+      var pre = document.getElementById('content');
+      var textContent = document.createTextNode(message + '\n');
+      pre.appendChild(textContent);
+    }
+
+    function addMeetingPicker(events) {
+      var content = document.getElementById('content');
+      var select = document.createElement("select");
+      select.id = "meetingPicker";
+
+
+      events.forEach((item, index) => {
+        var element = document.createElement("option");
+        element.text = item.summary;
+        select.appendChild(element);
+      });
+      select.onchange = showDetails;
+      select.onload = showDetails;
+      content.appendChild(select);
+
+      showDetails();
+    }
+
+    function copy() {
+      var template = document.getElementById("meetingTemplate2");
+      template.select();
+      document.execCommand("copy");
+    }
+
+    function showDetails() {
+      var template = document.getElementById("meetingTemplate");
+      var template2 = document.getElementById("meetingTemplate2");
+      var picker = document.getElementById("meetingPicker");
+
+      gapi.client.calendar.events.list({
+        'calendarId': 'primary',
+        'timeMin': (new Date()).toISOString(),
+        'showDeleted': false,
+        'singleEvents': true,
+        'maxResults': 10,
+        'orderBy': 'startTime'
+      }).then(function (response) {
+        var events = response.result.items;
+
+        if (events.length > 0) {
+          var selected = events[picker.selectedIndex];
+
+          template.textContent = "# " + selected.summary + "\n"
+            + selected.start.dateTime + "\n\n"
+            + "### Attendees \n";
+
+          var organizer = selected.organizer;
+          if (organizer.email.includes("@github.com")) {
+            template.textContent += "* [ ] @" + organizer.email.substring(0, organizer.email.indexOf("@")) + "\n";
+          } else if (organizer.displayName == "undefined") {
+            template.textContent += "* [ ] [" + organizer.email + "](mailto:" + organizer.email + ") \n";
+          } else {
+            template.textContent += "* [ ] [" + organizer.displayName + "](mailto:" + organizer.email + ") \n";
+          }
+
+          selected.attendees.forEach((item, index) => {
+            if (item.email.includes("@github.com")) {
+              template.textContent += "* [ ] @" + item.email.substring(0, item.email.indexOf("@")) + "\n";
+            } else if (item.displayName == "undefined") {
+              template.textContent += "* [ ] [" + item.email + "](mailto:" + item.email + ") \n";
+            } else {
+              template.textContent += "* [ ] [" + item.displayName + "](mailto:" + item.email + ") \n";
+            }
+          });
+
+          template.textContent += "\n### Notes\n";
+          template.textContent += selected.description;
+
+          template2.textContent = template.textContent;
+
+        } else {
+          appendPre('No upcoming events found.');
+        }
+      });
+    }
+
+    function addAttendee(item, index, template) {
+      if (item.email.includes("@github.com")) {
+        template.textContent += "* [ ] @" + item.email.substring(0, item.email.indexOf("@")) + "\n";
+      } else if (item.displayName == "undefined") {
+        template.textContent += "* [ ] [" + item.email + "](mailto:" + item.email + ") \n";
+      } else {
+        template.textContent += "* [ ] [" + item.displayName + "](mailto:" + item.email + ") \n";
+      }
+    }
+
+    // Load the API and make an API call.  Display the results on the screen.
+    function makeApiCall() {
+      gapi.client.calendar.events.list({
+        'calendarId': 'primary',
+        'timeMin': (new Date()).toISOString(),
+        'showDeleted': false,
+        'singleEvents': true,
+        'maxResults': 10,
+        'orderBy': 'startTime'
+      }).then(function (response) {
+        var events = response.result.items;
+
+        if (events.length > 0) {
+          addMeetingPicker(events);
+        } else {
+          appendPre('No upcoming events found.');
+        }
+      });
+    }
+  </script>
+  <script src="https://apis.google.com/js/api.js" onload="this.onload=function(){};handleClientLoad()"
+    onreadystatechange="if (this.readyState === 'complete') this.onload()">
+    </script>
+</body>
+
+</html>
