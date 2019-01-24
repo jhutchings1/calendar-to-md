@@ -59,3 +59,8 @@ typings/
 
 # next.js build output
 .next
+
+# local file for storing API keys 
+config.json
+
+.DS_Store
