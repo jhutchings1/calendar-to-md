@@ -19,14 +19,6 @@ where you will be running the script. Finally, activate the People API at:
   https://console.developers.google.com/apis/library?project=_
 */
 
-// Enter a client ID for a web application from the Google API Console:
-//   https://console.developers.google.com/apis/credentials?project=_
-// In your API Console project, add a JavaScript origin that corresponds
-//   to the domain where you will be running the script.
-var clientId = '';
-// Enter an API key from the Google API Console:
-//   https://console.developers.google.com/apis/credentials
-var apiKey = '';
 
 // Enter the API Discovery Docs that describes the APIs you want to
 // access. In this example, we are accessing the People API, so we load
