@@ -62,3 +62,5 @@ typings/
 
 # local file for storing API keys 
 config.json
+
+.DS_Store
