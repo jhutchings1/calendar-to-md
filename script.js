@@ -168,7 +168,6 @@ function showDetails() {
 
             template.textContent += "\n### Notes\n";
             template.textContent += selected.description;
-
             template2.textContent = template.textContent;
 
         } else {
