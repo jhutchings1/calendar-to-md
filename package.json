@@ -1,0 +1,23 @@
+{
+  "name": "calendar-to-md",
+  "version": "1.0.0",
+  "description": "This web app can be used to convert a Google calendar event into a simple Markdown file suitable for taking meeting notes.",
+  "main": "script.js",
+  "dependencies": {},
+  "devDependencies": {
+    "eslint": "^5.16.0"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jhutchings1/calendar-to-md.git"
+  },
+  "author": "Justin Hutchings",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/jhutchings1/calendar-to-md/issues"
+  },
+  "homepage": "https://github.com/jhutchings1/calendar-to-md#readme"
+}
