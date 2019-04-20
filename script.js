@@ -146,7 +146,7 @@ function showDetails() {
             var organizer = selected.organizer;
             if (convertEmailToMention && organizer.email.includes(convertEmailToMentionDomain)) {
                 template.textContent += "* [ ] @" + organizer.email.substring(0, organizer.email.indexOf("@")) + "\n";
-            } else if (organizer.displayName == "undefined") {
+            } else if (organizer.displayName == null) {
                 template.textContent += "* [ ] [" + organizer.email + "](mailto:" + organizer.email + ") \n";
             } else {
                 template.textContent += "* [ ] [" + organizer.displayName + "](mailto:" + organizer.email + ") \n";
@@ -156,7 +156,7 @@ function showDetails() {
                 selected.attendees.forEach((item, index) => {
                     if (convertEmailToMention && item.email.includes(convertEmailToMentionDomain)) {
                         template.textContent += "* [ ] @" + item.email.substring(0, item.email.indexOf("@")) + "\n";
-                    } else if (item.displayName == "undefined") {
+                    } else if (item.displayName == null) {
                         template.textContent += "* [ ] [" + item.email + "](mailto:" + item.email + ") \n";
                     } else {
                         template.textContent += "* [ ] [" + item.displayName + "](mailto:" + item.email + ") \n";
@@ -166,7 +166,6 @@ function showDetails() {
 
             template.textContent += "\n### Notes\n";
             template.textContent += selected.description;
-
             template2.textContent = template.textContent;
 
         } else {
@@ -178,7 +177,7 @@ function showDetails() {
 function addAttendee(item, index, template) {
     if (item.email.includes("@github.com")) {
         template.textContent += "* [ ] @" + item.email.substring(0, item.email.indexOf("@")) + "\n";
-    } else if (item.displayName == "undefined") {
+    } else if (item.displayName == null) {
         template.textContent += "* [ ] [" + item.email + "](mailto:" + item.email + ") \n";
     } else {
         template.textContent += "* [ ] [" + item.displayName + "](mailto:" + item.email + ") \n";
