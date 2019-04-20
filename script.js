@@ -154,7 +154,7 @@ function showDetails() {
 
             if (selected.attendees != null) {
                 selected.attendees.forEach((item, index) => {
-                    if (convertEmailTomention && item.email.includes(convertEmailToMentionDomain)) {
+                    if (convertEmailToMention && item.email.includes(convertEmailToMentionDomain)) {
                         template.textContent += "* [ ] @" + item.email.substring(0, item.email.indexOf("@")) + "\n";
                     } else if (item.displayName == "undefined") {
                         template.textContent += "* [ ] [" + item.email + "](mailto:" + item.email + ") \n";
