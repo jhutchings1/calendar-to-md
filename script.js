@@ -1,3 +1,5 @@
+/* eslint-disable no-unused-vars */
+/* eslint-disable no-undef */
 /** 
 Licensed under the Apache License, Version 2.0 (the "License"); you may not
 use this file except in compliance with the License. You may obtain a copy of
@@ -38,6 +40,7 @@ var convertEmailToMentionDomain = "@github.com";
 var authorizeButton = document.getElementById('authorize-button');
 var signoutButton = document.getElementById('signout-button');
 
+// eslint-disable-next-line no-unused-vars
 function handleClientLoad() {
     $.getJSON("config.json", function (value) {
         window.apiKey = value.apikey;
@@ -77,11 +80,11 @@ function updateSigninStatus(isSignedIn) {
     }
 }
 
-function handleAuthClick(event) {
+function handleAuthClick() {
     gapi.auth2.getAuthInstance().signIn();
 }
 
-function handleSignoutClick(event) {
+function handleSignoutClick() {
     gapi.auth2.getAuthInstance().signOut();
 }
 
@@ -103,7 +106,7 @@ function addMeetingPicker(events) {
     select.id = "meetingPicker";
 
 
-    events.forEach((item, index) => {
+    events.forEach((item, _index) => {
         var element = document.createElement("option");
         element.text = item.summary;
         select.appendChild(element);
@@ -155,13 +158,7 @@ function showDetails() {
             if (selected.attendees != null) {
                 selected.attendees.forEach((item, index) => {
                     if (item.email != organizer.email) {
-                        if (convertEmailTomention && item.email.includes(convertEmailToMentionDomain)) {
-                            template.textContent += "* [ ] @" + item.email.substring(0, item.email.indexOf("@")) + "\n";
-                        } else if (item.displayName == null) {
-                            template.textContent += "* [ ] [" + item.email + "](mailto:" + item.email + ") \n";
-                        } else {
-                            template.textContent += "* [ ] [" + item.displayName + "](mailto:" + item.email + ") \n";
-                        }
+                        addAttendee(item, index, template);
                     }
                 });
             }
@@ -177,9 +174,9 @@ function showDetails() {
 }
 
 function addAttendee(item, index, template) {
-    if (item.email.includes("@github.com")) {
+    if (convertEmailToMention && item.email.includes(convertEmailToMentionDomain)) {
         template.textContent += "* [ ] @" + item.email.substring(0, item.email.indexOf("@")) + "\n";
-    } else if (item.displayName == "undefined") {
+    } else if (item.displayName == null) {
         template.textContent += "* [ ] [" + item.email + "](mailto:" + item.email + ") \n";
     } else {
         template.textContent += "* [ ] [" + item.displayName + "](mailto:" + item.email + ") \n";
